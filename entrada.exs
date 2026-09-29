@@ -1,7 +1,6 @@
 # Integrantes: [Completar con nombres del grupo]
 # Archivo: entrada.exs
-# Módulo para leer y parsear la entrada del usuario por consola (IO.gets).
-# Maneja la lectura de servicios adicionales y consulta de comprobantes sin usar try/rescue.
+# Módulo para leer y parsear la entrada del usuario usando Util.exs.
 
 defmodule Entrada do
   # PURA - convierte un texto a número (entero o decimal) sin try/rescue
@@ -62,29 +61,29 @@ defmodule Entrada do
     end
   end
 
-  # IMPURA - solicita un servicio adicional por consola
-  def pedir_servicio do
-    IO.puts("Ingrese un servicio adicional")
-    IO.puts("(repartidor;zona;dia;kilometros;retraso)")
-    IO.write("o presione Enter para omitir: ")
-    entrada = IO.gets("")
-
-    texto = if entrada == nil, do: "", else: entrada
-    parsear_servicio(texto)
+  # IMPURA - solicita un único servicio por consola
+  def pedir_un_servicio do
+    prompt = "Ingrese servicio (repartidor;zona;dia;kilometros;retraso): "
+    entrada = Util.ingresar(prompt, :texto)
+    parsear_servicio(entrada)
   end
 
-  # IMPURA - solicita el código de un repartidor para generar su comprobante
-  def pedir_codigo_repartidor do
-    IO.puts("\n========================================")
-    IO.puts("  CONSULTA DE COMPROBANTE INDIVIDUAL")
-    IO.puts("========================================")
-    IO.write("Ingrese el código del repartidor (ej: M01) o Enter para salir: ")
-    entrada = IO.gets("")
+  # IMPURA - solicita una colección de servicios adicionales utilizando Util.ingresar con :boolean y :coleccion
+  def pedir_servicios_adicionales do
+    desea_ingresar = Util.ingresar("¿Desea ingresar servicios adicionales (s/n)? ", :boolean)
 
-    if entrada == nil do
-      ""
+    if desea_ingresar do
+      Util.ingresar(&pedir_un_servicio/0, :coleccion)
     else
-      String.trim(entrada)
+      []
     end
+  end
+
+  # IMPURA - solicita el código de un repartidor para generar su comprobante usando Util
+  def pedir_codigo_repartidor do
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  CONSULTA DE COMPROBANTE INDIVIDUAL", :mensaje)
+    Util.mostrar("========================================", :mensaje)
+    Util.ingresar("Ingrese el código del repartidor (ej: M01): ", :texto)
   end
 end

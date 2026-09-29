@@ -1,7 +1,7 @@
 # Integrantes: [Completar con nombres del grupo]
 # Archivo: reportes.exs
 # Módulo con los reportes R1 a R8 y el comprobante de pago.
-# Cada reporte separa la función PURA (cálculo de datos) de la IMPURA (impresión en pantalla).
+# Usa Util.mostrar/2 para imprimir por pantalla.
 
 defmodule Reportes do
   # ============================================================
@@ -19,25 +19,28 @@ defmodule Reportes do
 
   # IMPURA - imprime la lista de servicios rechazados y el resumen de motivos
   def imprimir_r1(rechazados) do
-    IO.puts("\n========================================")
-    IO.puts("  R1: SERVICIOS RECHAZADOS")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R1: SERVICIOS RECHAZADOS", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     if rechazados == [] do
-      IO.puts("  No hay servicios rechazados.")
+      Util.mostrar("  No hay servicios rechazados.", :mensaje)
     else
-      Enum.each(rechazados, fn {servicio, motivo} ->
-        IO.puts("  Repartidor: #{servicio.repartidor}, Zona: #{servicio.zona}, Día: #{inspect(servicio.dia)}, Km: #{inspect(servicio.kilometros)}, Retraso: #{inspect(servicio.retraso)} -> #{motivo}")
-      end)
+      lineas_rechazados =
+        Util.convertir_coleccion_mensaje(rechazados, fn {servicio, motivo} ->
+          "  Repartidor: #{servicio.repartidor}, Zona: #{servicio.zona}, Día: #{inspect(servicio.dia)}, Km: #{inspect(servicio.kilometros)}, Retraso: #{inspect(servicio.retraso)} -> #{motivo}"
+        end)
 
-      IO.puts("\n  Rechazos por motivo:")
+      Enum.each(lineas_rechazados, &Util.mostrar(&1, :mensaje))
+
+      Util.mostrar("\n  Rechazos por motivo:", :mensaje)
       conteo = contar_rechazos_por_motivo(rechazados)
 
       Enum.each(conteo, fn {motivo, cantidad} ->
-        IO.puts("    #{motivo}: #{cantidad}")
+        Util.mostrar("    #{motivo}: #{cantidad}", :mensaje)
       end)
 
-      IO.puts("  Total rechazados: #{length(rechazados)}")
+      Util.mostrar("  Total rechazados: #{length(rechazados)}", :mensaje)
     end
   end
 
@@ -64,15 +67,15 @@ defmodule Reportes do
 
   # IMPURA - imprime las zonas ordenadas por densidad de mayor a menor
   def imprimir_r2(servicios_validos, zonas) do
-    IO.puts("\n========================================")
-    IO.puts("  R2: KILÓMETROS POR ZONA Y DENSIDAD")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R2: KILÓMETROS POR ZONA Y DENSIDAD", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     datos_zonas = calcular_km_por_zona(servicios_validos, zonas)
     ordenados = Utilidades.ranking(datos_zonas, por: :densidad, orden: :desc)
 
     Enum.each(ordenados, fn z ->
-      IO.puts("  #{z.nombre} (#{z.id}): #{Utilidades.redondear(z.km)} km, Área: #{z.area} km², Densidad: #{Utilidades.redondear(z.densidad)} km/km²")
+      Util.mostrar("  #{z.nombre} (#{z.id}): #{Utilidades.redondear(z.km)} km, Área: #{z.area} km², Densidad: #{Utilidades.redondear(z.densidad)} km/km²", :mensaje)
     end)
   end
 
@@ -91,9 +94,9 @@ defmodule Reportes do
 
   # IMPURA - imprime los km de cada día y si se alcanzó la meta de 500 km
   def imprimir_r3(servicios_validos) do
-    IO.puts("\n========================================")
-    IO.puts("  R3: KILÓMETROS POR DÍA Y META (#{Parametros.meta_diaria()} km)")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R3: KILÓMETROS POR DÍA Y META (#{Parametros.meta_diaria()} km)", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     km_por_dia = calcular_km_por_dia(servicios_validos)
     meta = Parametros.meta_diaria()
@@ -102,17 +105,16 @@ defmodule Reportes do
       km = Map.get(km_por_dia, dia, 0)
       alcanzo = km >= meta
       estado = if alcanzo, do: "✓ META ALCANZADA", else: "✗ No alcanzó la meta"
-      IO.puts("  Día #{dia}: #{Utilidades.redondear(km)} km - #{estado}")
+      Util.mostrar("  Día #{dia}: #{Utilidades.redondear(km)} km - #{estado}", :mensaje)
       alcanzo
     end)
 
     todos = Enum.all?(dias_cumplidos, fn x -> x end)
     al_menos_uno = Enum.any?(dias_cumplidos, fn x -> x end)
 
-    IO.puts("\n  ¿Meta todos los días? #{if todos, do: "SÍ", else: "NO"}")
-    IO.puts("  ¿Meta al menos un día? #{if al_menos_uno, do: "SÍ", else: "NO"}")
+    Util.mostrar("\n  ¿Meta todos los días? #{if todos, do: "SÍ", else: "NO"}", :mensaje)
+    Util.mostrar("  ¿Meta al menos un día? #{if al_menos_uno, do: "SÍ", else: "NO"}", :mensaje)
 
-    # Retorna el mapa para reutilizarlo en la investigación
     km_por_dia
   end
 
@@ -122,21 +124,20 @@ defmodule Reportes do
 
   # IMPURA - imprime la liquidación de repartidores ordenada de mayor a menor neto
   def imprimir_r4(liquidaciones) do
-    IO.puts("\n========================================")
-    IO.puts("  R4: LIQUIDACIÓN DE REPARTIDORES")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R4: LIQUIDACIÓN DE REPARTIDORES", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
-    # Ordenamos con nuestra función de ranking
     ordenadas = Utilidades.ranking(liquidaciones, por: :neto, orden: :desc)
 
     Enum.with_index(ordenadas, 1)
     |> Enum.each(fn {liq, posicion} ->
-      IO.puts("  #{posicion}. #{liq.nombre} (#{liq.codigo})")
-      IO.puts("     Kilómetros: #{Utilidades.redondear(liq.kilometros)}")
-      IO.puts("     Valor servicios: #{Utilidades.formato_pesos(liq.valor_servicios)}")
-      IO.puts("     Bonificaciones: #{Utilidades.formato_pesos(liq.bonificaciones)}")
-      IO.puts("     Alquiler bicicleta: #{Utilidades.formato_pesos(liq.alquiler)}")
-      IO.puts("     NETO: #{Utilidades.formato_pesos(liq.neto)}\n")
+      Util.mostrar("  #{posicion}. #{liq.nombre} (#{liq.codigo})", :mensaje)
+      Util.mostrar("     Kilómetros: #{Utilidades.redondear(liq.kilometros)}", :mensaje)
+      Util.mostrar("     Valor servicios: #{Utilidades.formato_pesos(liq.valor_servicios)}", :mensaje)
+      Util.mostrar("     Bonificaciones: #{Utilidades.formato_pesos(liq.bonificaciones)}", :mensaje)
+      Util.mostrar("     Alquiler bicicleta: #{Utilidades.formato_pesos(liq.alquiler)}", :mensaje)
+      Util.mostrar("     NETO: #{Utilidades.formato_pesos(liq.neto)}\n", :mensaje)
     end)
   end
 
@@ -149,14 +150,12 @@ defmodule Reportes do
     Enum.map(1..6, fn dia ->
       servicios_del_dia = Enum.filter(servicios_validos, fn s -> s.dia == dia end)
 
-      # Calculamos los km de cada repartidor en este día
       totales = Enum.map(repartidores, fn r ->
         servicios_rep = Enum.filter(servicios_del_dia, fn s -> s.repartidor == r.codigo end)
         km = Enum.sum(Enum.map(servicios_rep, fn s -> s.kilometros end))
         %{codigo: r.codigo, nombre: r.nombre, km: km}
       end)
 
-      # Filtramos los que sí tuvieron servicios ese día
       activos = Enum.filter(totales, fn r -> r.km > 0 end)
 
       if activos == [] do
@@ -171,13 +170,11 @@ defmodule Reportes do
 
   # PURA - determina el campeón semanal (el que fue primero en más días)
   def campeon_semanal(mejores) do
-    # Obtenemos la lista de todos los ganadores de cada día
     todos_los_ganadores = Enum.flat_map(mejores, fn {_dia, ganadores} -> ganadores end)
 
     if todos_los_ganadores == [] do
       []
     else
-      # Agrupamos por código para contar cuántas veces ganó cada repartidor
       por_repartidor = Enum.group_by(todos_los_ganadores, fn g -> g.codigo end)
 
       conteo = Enum.map(por_repartidor, fn {codigo, lista} ->
@@ -192,30 +189,30 @@ defmodule Reportes do
 
   # IMPURA - imprime los ganadores de cada día y el campeón semanal
   def imprimir_r5(servicios_validos, repartidores) do
-    IO.puts("\n========================================")
-    IO.puts("  R5: MEJOR REPARTIDOR POR DÍA")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R5: MEJOR REPARTIDOR POR DÍA", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     mejores = mejores_por_dia(servicios_validos, repartidores)
 
     Enum.each(mejores, fn {dia, ganadores} ->
       if ganadores == [] do
-        IO.puts("  Día #{dia}: Sin servicios")
+        Util.mostrar("  Día #{dia}: Sin servicios", :mensaje)
       else
         textos = Enum.map(ganadores, fn g ->
           "#{g.nombre} (#{g.codigo}) con #{Utilidades.redondear(g.km)} km"
         end)
         mensaje = Enum.join(textos, ", ")
         empate = if length(ganadores) > 1, do: " [EMPATE]", else: ""
-        IO.puts("  Día #{dia}: #{mensaje}#{empate}")
+        Util.mostrar("  Día #{dia}: #{mensaje}#{empate}", :mensaje)
       end
     end)
 
     campeones = campeon_semanal(mejores)
-    IO.puts("\n  Campeón semanal (primero en más días):")
+    Util.mostrar("\n  Campeón semanal (primero en más días):", :mensaje)
 
     Enum.each(campeones, fn c ->
-      IO.puts("    #{c.nombre} (#{c.codigo}) - #{c.dias} día(s) como primero")
+      Util.mostrar("    #{c.nombre} (#{c.codigo}) - #{c.dias} día(s) como primero", :mensaje)
     end)
   end
 
@@ -229,12 +226,10 @@ defmodule Reportes do
     elegibles = Enum.filter(por_repartidor, fn {_cod, lista} -> length(lista) >= 3 end)
 
     Enum.map(elegibles, fn {codigo, servicios} ->
-      # Promedio ponderado: suma(retraso * km) / suma(km)
       suma_ponderada = Enum.sum(Enum.map(servicios, fn s -> s.retraso * s.kilometros end))
       total_km = Enum.sum(Enum.map(servicios, fn s -> s.kilometros end))
       promedio_ponderado = if total_km > 0, do: suma_ponderada / total_km, else: 0.0
 
-      # Promedio simple: suma(retraso) / total_servicios
       suma_retrasos = Enum.sum(Enum.map(servicios, fn s -> s.retraso end))
       promedio_simple = suma_retrasos / length(servicios)
 
@@ -252,23 +247,22 @@ defmodule Reportes do
 
   # IMPURA - imprime el repartidor con mejor puntualidad según el promedio ponderado
   def imprimir_r6(servicios_validos, repartidores) do
-    IO.puts("\n========================================")
-    IO.puts("  R6: MEJOR PUNTUALIDAD (PROMEDIO PONDERADO)")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R6: MEJOR PUNTUALIDAD (PROMEDIO PONDERADO)", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     promedios = calcular_puntualidad(servicios_validos, repartidores)
 
     if promedios == [] do
-      IO.puts("  No hay repartidores con 3 o más servicios válidos.")
+      Util.mostrar("  No hay repartidores con 3 o más servicios válidos.", :mensaje)
     else
-      # El mejor es el que tenga el menor promedio (más puntual o con adelanto)
       ganador = Enum.min_by(promedios, fn p -> p.promedio_ponderado end)
 
-      IO.puts("  Ganador: #{ganador.nombre} (#{ganador.codigo})")
-      IO.puts("  Servicios válidos: #{ganador.num_servicios}")
-      IO.puts("  Promedio ponderado (retraso × km / km): #{Utilidades.redondear(ganador.promedio_ponderado)} min")
-      IO.puts("  Promedio simple: #{Utilidades.redondear(ganador.promedio_simple)} min")
-      IO.puts("  (El ponderado da más peso a servicios de más kilómetros)")
+      Util.mostrar("  Ganador: #{ganador.nombre} (#{ganador.codigo})", :mensaje)
+      Util.mostrar("  Servicios válidos: #{ganador.num_servicios}", :mensaje)
+      Util.mostrar("  Promedio ponderado (retraso × km / km): #{Utilidades.redondear(ganador.promedio_ponderado)} min", :mensaje)
+      Util.mostrar("  Promedio simple: #{Utilidades.redondear(ganador.promedio_simple)} min", :mensaje)
+      Util.mostrar("  (El ponderado da más peso a servicios de más kilómetros)", :mensaje)
     end
   end
 
@@ -287,15 +281,15 @@ defmodule Reportes do
 
   # IMPURA - imprime el total de dinero pagado y el costo por kilómetro
   def imprimir_r7(liquidaciones) do
-    IO.puts("\n========================================")
-    IO.puts("  R7: TOTAL PAGADO EN LA SEMANA")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R7: TOTAL PAGADO EN LA SEMANA", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     totales = calcular_totales(liquidaciones)
 
-    IO.puts("  Total pagado (suma de netos): #{Utilidades.formato_pesos(totales.total_netos)}")
-    IO.puts("  Total kilómetros: #{Utilidades.redondear(totales.total_km)}")
-    IO.puts("  Costo promedio por km: #{Utilidades.formato_pesos(totales.costo_por_km)}")
+    Util.mostrar("  Total pagado (suma de netos): #{Utilidades.formato_pesos(totales.total_netos)}", :mensaje)
+    Util.mostrar("  Total kilómetros: #{Utilidades.redondear(totales.total_km)}", :mensaje)
+    Util.mostrar("  Costo promedio por km: #{Utilidades.formato_pesos(totales.costo_por_km)}", :mensaje)
   end
 
   # ============================================================
@@ -313,25 +307,28 @@ defmodule Reportes do
     end)
     |> Enum.map(fn r ->
       servicios_r = Enum.filter(servicios_validos, fn s -> s.repartidor == r.codigo end)
-      zonas_visitadas = Enum.sort(Enum.uniq(Enum.map(servicios_r, fn s -> s.zona end)))
+      zonas_visitadas = Util.ordenar(Enum.uniq(Enum.map(servicios_r, fn s -> s.zona end)))
       %{codigo: r.codigo, nombre: r.nombre, zonas: zonas_visitadas}
     end)
   end
 
   # IMPURA - imprime los repartidores con cobertura completa de zonas
   def imprimir_r8(servicios_validos, zonas, repartidores) do
-    IO.puts("\n========================================")
-    IO.puts("  R8: REPARTIDORES EN TODAS LAS ZONAS")
-    IO.puts("========================================")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  R8: REPARTIDORES EN TODAS LAS ZONAS", :mensaje)
+    Util.mostrar("========================================", :mensaje)
 
     resultado = repartidores_todas_zonas(servicios_validos, zonas, repartidores)
 
     if resultado == [] do
-      IO.puts("  Ningún repartidor tiene servicios en todas las zonas.")
+      Util.mostrar("  Ningún repartidor tiene servicios en todas las zonas.", :mensaje)
     else
-      Enum.each(resultado, fn r ->
-        IO.puts("  #{r.nombre} (#{r.codigo}) - Zonas: #{Enum.join(r.zonas, ", ")}")
-      end)
+      lineas_r8 =
+        Util.convertir_coleccion_mensaje(resultado, fn r ->
+          "  #{r.nombre} (#{r.codigo}) - Zonas: #{Enum.join(r.zonas, ", ")}"
+        end)
+
+      Enum.each(lineas_r8, &Util.mostrar(&1, :mensaje))
     end
   end
 
@@ -345,18 +342,18 @@ defmodule Reportes do
     repartidor = Enum.find(repartidores, fn r -> r.codigo == codigo end)
     servicios_del_repartidor = Enum.filter(servicios_validos, fn s -> s.repartidor == codigo end)
 
-    IO.puts("\n========================================")
-    IO.puts("  COMPROBANTE DE PAGO")
-    IO.puts("========================================")
-    IO.puts("  Repartidor: #{liquidacion.nombre} (#{codigo})")
-    IO.puts("  Bicicleta: #{if repartidor.bicicleta, do: "Sí", else: "No"}")
-    IO.puts("----------------------------------------")
+    Util.mostrar("\n========================================", :mensaje)
+    Util.mostrar("  COMPROBANTE DE PAGO", :mensaje)
+    Util.mostrar("========================================", :mensaje)
+    Util.mostrar("  Repartidor: #{liquidacion.nombre} (#{codigo})", :mensaje)
+    Util.mostrar("  Bicicleta: #{if repartidor.bicicleta, do: "Sí", else: "No"}", :mensaje)
+    Util.mostrar("----------------------------------------", :mensaje)
 
     por_dia = Enum.group_by(servicios_del_repartidor, fn s -> s.dia end)
-    dias_trabajados = Enum.sort(Map.keys(por_dia))
+    dias_trabajados = Util.ordenar(Map.keys(por_dia))
 
     if dias_trabajados == [] do
-      IO.puts("  Sin servicios válidos en la semana.")
+      Util.mostrar("  Sin servicios válidos en la semana.", :mensaje)
     else
       Enum.each(dias_trabajados, fn dia ->
         servicios_dia = Map.get(por_dia, dia, [])
@@ -364,15 +361,15 @@ defmodule Reportes do
         valor_dia = Enum.sum(Enum.map(servicios_dia, fn s -> Liquidacion.valor_servicio(s) end))
         bono_dia = if km_dia >= Parametros.km_bonificacion(), do: Parametros.bonificacion_diaria(), else: 0
 
-        IO.puts("  Día #{dia}: #{Utilidades.redondear(km_dia)} km, Valor: #{Utilidades.formato_pesos(valor_dia)}, Bonificación: #{Utilidades.formato_pesos(bono_dia)}")
+        Util.mostrar("  Día #{dia}: #{Utilidades.redondear(km_dia)} km, Valor: #{Utilidades.formato_pesos(valor_dia)}, Bonificación: #{Utilidades.formato_pesos(bono_dia)}", :mensaje)
       end)
     end
 
-    IO.puts("----------------------------------------")
-    IO.puts("  Suma valor servicios: #{Utilidades.formato_pesos(liquidacion.valor_servicios)}")
-    IO.puts("  Suma bonificaciones: #{Utilidades.formato_pesos(liquidacion.bonificaciones)}")
-    IO.puts("  Descuento alquiler: #{Utilidades.formato_pesos(liquidacion.alquiler)}")
-    IO.puts("  NETO A PAGAR: #{Utilidades.formato_pesos(liquidacion.neto)}")
-    IO.puts("========================================")
+    Util.mostrar("----------------------------------------", :mensaje)
+    Util.mostrar("  Suma valor servicios: #{Utilidades.formato_pesos(liquidacion.valor_servicios)}", :mensaje)
+    Util.mostrar("  Suma bonificaciones: #{Utilidades.formato_pesos(liquidacion.bonificaciones)}", :mensaje)
+    Util.mostrar("  Descuento alquiler: #{Utilidades.formato_pesos(liquidacion.alquiler)}", :mensaje)
+    Util.mostrar("  NETO A PAGAR: #{Utilidades.formato_pesos(liquidacion.neto)}", :mensaje)
+    Util.mostrar("========================================", :mensaje)
   end
 end

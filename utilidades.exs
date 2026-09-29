@@ -13,7 +13,7 @@ defmodule Utilidades do
     orden = Keyword.get(opciones, :orden, :desc)
     limite = Keyword.get(opciones, :limite, length(lista))
 
-    lista_ordenada = Enum.sort_by(lista, fn elemento -> Map.get(elemento, campo) end, orden)
+    lista_ordenada = Util.ordenar(lista, orden, fn elemento -> Map.get(elemento, campo) end)
     Enum.take(lista_ordenada, limite)
   end
 
