@@ -1,8 +1,5 @@
-# Integrantes: [Completar con nombres del grupo]
 # Archivo: main.exs
-# Módulo principal que orquesta la carga de módulos, validación de datos,
-# interacción con el usuario, cálculo de liquidaciones, reportes e investigación.
-# Utiliza Util.exs para toda la interacción de entrada y salida por consola.
+# Módulo principal del sistema de liquidación de mensajería
 
 Code.require_file("parametros.exs")
 Code.require_file("datos.exs")
@@ -14,13 +11,11 @@ Code.require_file("reportes.exs")
 Code.require_file("entrada.exs")
 
 defmodule Main do
-  # IMPURA - función principal que orquesta todo el flujo del sistema
   def ejecutar do
     Util.mostrar("==================================================", :mensaje)
     Util.mostrar("    SISTEMA DE GESTIÓN Y LIQUIDACIÓN MENSAJERÍA    ", :mensaje)
     Util.mostrar("==================================================\n", :mensaje)
 
-    # 1. Cargar datos iniciales
     repartidores = Datos.repartidores()
     zonas = Datos.zonas()
     servicios_iniciales = Datos.servicios()
@@ -28,8 +23,6 @@ defmodule Main do
     codigos_repartidores = Enum.map(repartidores, fn r -> r.codigo end)
     ids_zonas = Enum.map(zonas, fn z -> z.id end)
 
-    # 2. Validar servicios aplicando las 5 reglas en orden
-    # Separamos en dos listas: válidos y rechazados usando comprensiones for
     servicios_validados = Enum.map(servicios_iniciales, fn s ->
       {s, Validacion.validar(s, codigos_repartidores, ids_zonas)}
     end)
@@ -37,7 +30,6 @@ defmodule Main do
     servicios_validos = for {s, {:ok, _}} <- servicios_validados, do: s
     rechazados = for {s, {:error, motivo}} <- servicios_validados, do: {s, motivo}
 
-    # 3. Interacción con el usuario: ingreso opcional de servicios adicionales con Util.ingresar (:boolean y :coleccion)
     servicios_adicionales_ingresados = Entrada.pedir_servicios_adicionales()
 
     {servicios_validos_totales, rechazados_totales} =
@@ -67,10 +59,8 @@ defmodule Main do
         end)
       end
 
-    # 4. Calcular liquidaciones de todos los repartidores
     liquidaciones = Liquidacion.liquidar_todos(repartidores, servicios_validos_totales)
 
-    # 5. Generar e imprimir los reportes R1 a R8
     Reportes.imprimir_r1(rechazados_totales)
     Reportes.imprimir_r2(servicios_validos_totales, zonas)
     km_por_dia = Reportes.imprimir_r3(servicios_validos_totales)
@@ -80,10 +70,8 @@ defmodule Main do
     Reportes.imprimir_r7(liquidaciones)
     Reportes.imprimir_r8(servicios_validos_totales, zonas, repartidores)
 
-    # 6. Sección de Investigación del Parcial
     seccion_investigacion(km_por_dia, repartidores, servicios_validos_totales, codigos_repartidores, ids_zonas)
 
-    # 7. Consulta interactiva de comprobante individual por código
     desea_comprobante = Util.ingresar("\n¿Desea consultar un comprobante individual (s/n)? ", :boolean)
 
     if desea_comprobante do
@@ -102,13 +90,11 @@ defmodule Main do
     Util.mostrar("\nProceso finalizado correctamente.", :mensaje)
   end
 
-  # IMPURA - ejecuta e imprime los puntos de la sección de investigación
   def seccion_investigacion(km_por_dia, repartidores, servicios_validos, codigos_repartidores, ids_zonas) do
     Util.mostrar("\n==================================================", :mensaje)
     Util.mostrar("         SECCIÓN DE INVESTIGACIÓN (PARCIAL)       ", :mensaje)
     Util.mostrar("==================================================", :mensaje)
 
-    # a) Demostración de ranking genérico con keyword lists
     Util.mostrar("\n--- a) Ranking genérico con Keyword Lists ---", :mensaje)
     Util.mostrar("Se implementó la función Utilidades.ranking/2 que recibe opciones como keyword list:", :mensaje)
     Util.mostrar("  ranking(lista, por: :campo, orden: :asc/:desc, limite: n)", :mensaje)
@@ -119,7 +105,6 @@ defmodule Main do
 
     Enum.each(lineas_top_3, &Util.mostrar(&1, :mensaje))
 
-    # b) Combinación con empresa aliada usando Map.merge/3
     Util.mostrar("\n--- b) Combinación de mapas con Map.merge/3 ---", :mensaje)
     empresa_aliada = %{1 => 580.5, 2 => 430, 3 => 510, 5 => 625, 7 => 180}
 
@@ -139,10 +124,8 @@ defmodule Main do
     Util.mostrar("2. Map.merge/3 resuelve esto al recibir una función anónima que decide cómo combinar los dos valores (en este caso sumándolos).", :mensaje)
     Util.mostrar("3. El día 7, al no existir en nuestra empresa (operamos días 1 al 6), se inserta directamente conservando los 180 km de la aliada.", :mensaje)
 
-    # c) Mediciones de tiempo de ejecución con :timer.tc/1
     Util.mostrar("\n--- c) Mediciones de rendimiento con :timer.tc/1 ---", :mensaje)
 
-    # Medición 1: Validación de servicios
     {tiempo_val, _} =
       :timer.tc(fn ->
         Enum.map(servicios_validos, fn s ->
@@ -150,13 +133,11 @@ defmodule Main do
         end)
       end)
 
-    # Medición 2: Cálculo de liquidación semanal
     {tiempo_liq, _} =
       :timer.tc(fn ->
         Liquidacion.liquidar_todos(repartidores, servicios_validos)
       end)
 
-    # Medición 3: Búsqueda en lista vs búsqueda en mapa
     mapa_repartidores = Map.new(repartidores, fn r -> {r.codigo, r} end)
     codigo_prueba = "M05"
 
@@ -179,5 +160,4 @@ defmodule Main do
   end
 end
 
-# Ejecutar el programa al ser invocado con: elixir main.exs
 Main.ejecutar()
