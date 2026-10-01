@@ -1,4 +1,4 @@
-# Integrantes: [Completar con nombres del grupo]
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 # Archivo: datos.exs
 # Módulo con los datos de prueba: repartidores, zonas y servicios.
 # Los servicios incluyen casos válidos e inválidos mezclados para probar la validación.

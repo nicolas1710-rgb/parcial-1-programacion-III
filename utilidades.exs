@@ -1,4 +1,4 @@
-# Integrantes: [Completar con nombres del grupo]
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 # Archivo: utilidades.exs
 # Módulo con funciones de apoyo: ranking genérico, búsqueda y formato.
 

@@ -1,3 +1,4 @@
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 defmodule Liquidacion do
   def valor_servicio(servicio) do
     valor_base = servicio.kilometros * Parametros.tarifa_base()

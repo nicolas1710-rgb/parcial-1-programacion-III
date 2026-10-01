@@ -1,4 +1,4 @@
-# Integrantes: [Completar con nombres del grupo]
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 # Archivo: parametros.exs
 # Módulo con las constantes del negocio. Cada parámetro es un atributo de módulo
 # y se expone con una función pública para que otros módulos lo consulten.

@@ -1,4 +1,4 @@
-# Integrantes: [Completar con nombres del grupo]
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 # Archivo: entrada.exs
 # Módulo para leer y parsear la entrada del usuario usando Util.exs.
 

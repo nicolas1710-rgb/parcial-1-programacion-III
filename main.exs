@@ -1,3 +1,4 @@
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 # Archivo: main.exs
 # Módulo principal del sistema de liquidación de mensajería
 
@@ -79,7 +80,7 @@ defmodule Main do
       liquidacion_encontrada = Enum.find(liquidaciones, fn l -> l.codigo == codigo_consultado end)
 
       if liquidacion_encontrada != nil do
-        Reportes.imprimir_comprobante(liquidacion_encontrada, servicios_validos_totales, repartidores)
+        Reportes.imprimir_comprobante(liquidacion_encontrada, servicios_validos_totales)
       else
         Util.mostrar(">> El repartidor con código \"#{codigo_consultado}\" no fue encontrado.", :error)
       end

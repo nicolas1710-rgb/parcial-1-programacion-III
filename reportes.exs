@@ -1,3 +1,4 @@
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 defmodule Reportes do
   # R1: Servicios rechazados y total por motivo
   def imprimir_r1(rechazados) do
@@ -109,7 +110,7 @@ defmodule Reportes do
   end
 
   # Comprobante individual
-  def imprimir_comprobante(liquidacion, servicios_validos, repartidores) do
+  def imprimir_comprobante(liquidacion, servicios_validos) do
     Util.mostrar("\n=== COMPROBANTE DE PAGO: #{liquidacion.nombre} (#{liquidacion.codigo}) ===", :mensaje)
     servs = Enum.filter(servicios_validos, &(&1.repartidor == liquidacion.codigo))
 

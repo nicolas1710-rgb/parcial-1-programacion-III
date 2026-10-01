@@ -1,3 +1,4 @@
+# Integrantes: Nicolas Arbelaez, Santiago Avila, Cristian Cruz
 defmodule Validacion do
   def validar(servicio, codigos_repartidores, ids_zonas) do
     with {:ok, _} <- verificar_repartidor(servicio, codigos_repartidores),
